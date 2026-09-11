@@ -20,18 +20,14 @@
 
 package password.pwm.util.secure;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-
 import java.security.SecureRandom;
 import java.util.UUID;
 import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
 import java.util.stream.LongStream;
 
-@SuppressFBWarnings( "SING_SINGLETON_IMPLEMENTS_SERIALIZABLE" )
-public class PwmRandom extends SecureRandom
+public class PwmRandom 
 {
-
     private final SecureRandom internalRand;
 
     private static final PwmRandom SINGLETON = new PwmRandom( new SecureRandom( ) );
@@ -48,7 +44,7 @@ public class PwmRandom extends SecureRandom
         return SINGLETON;
     }
 
-    @Override
+    
     public long nextLong( )
     {
         return internalRand.nextLong();
@@ -66,25 +62,24 @@ public class PwmRandom extends SecureRandom
         return randomLong % n;
     }
 
-    @Override
     public int nextInt( )
     {
         return internalRand.nextInt();
     }
 
-    @Override
+    
     public int nextInt( final int n )
     {
         return internalRand.nextInt( n );
     }
 
-    @Override
+    
     public boolean nextBoolean( )
     {
         return internalRand.nextBoolean();
     }
 
-    @Override
+    
     public String getAlgorithm( )
     {
         return internalRand.getAlgorithm();
@@ -119,7 +114,7 @@ public class PwmRandom extends SecureRandom
         return characters.charAt( nextInt( characters.length() ) );
     }
 
-    @Override
+    
     public void nextBytes( final byte[] secArray )
     {
         internalRand.nextBytes( secArray );
@@ -137,93 +132,98 @@ public class PwmRandom extends SecureRandom
         return newBytes;
     }
 
-    @Override
+    
     public float nextFloat( )
     {
         return internalRand.nextFloat();
     }
 
-    @Override
+    
     public double nextDouble( )
     {
         return internalRand.nextDouble();
     }
 
-    @Override
-    public synchronized double nextGaussian( )
+    
+    public double nextGaussian( )
     {
-        return internalRand.nextGaussian();
+            return internalRand.nextGaussian();
     }
 
-    @Override
+    
     public IntStream ints( final long streamSize )
     {
         return internalRand.ints( streamSize );
     }
 
-    @Override
+    
     public IntStream ints( )
     {
         return internalRand.ints();
     }
 
-    @Override
+    
     public IntStream ints( final long streamSize, final int randomNumberOrigin, final int randomNumberBound )
     {
         return internalRand.ints( streamSize, randomNumberOrigin, randomNumberBound );
     }
 
-    @Override
+    
     public IntStream ints( final int randomNumberOrigin, final int randomNumberBound )
     {
         return internalRand.ints( randomNumberOrigin, randomNumberBound );
     }
 
-    @Override
+    
     public LongStream longs( final long streamSize )
     {
         return internalRand.longs( streamSize );
     }
 
-    @Override
+    
     public LongStream longs( )
     {
         return internalRand.longs();
     }
 
-    @Override
+    
     public LongStream longs( final long streamSize, final long randomNumberOrigin, final long randomNumberBound )
     {
         return internalRand.longs( streamSize, randomNumberOrigin, randomNumberBound );
     }
 
-    @Override
+    
     public LongStream longs( final long randomNumberOrigin, final long randomNumberBound )
     {
         return internalRand.longs( randomNumberOrigin, randomNumberBound );
     }
 
-    @Override
+    
     public DoubleStream doubles( final long streamSize )
     {
         return internalRand.doubles( streamSize );
     }
 
-    @Override
+    
     public DoubleStream doubles( )
     {
         return internalRand.doubles();
     }
 
-    @Override
+    
     public DoubleStream doubles( final long streamSize, final double randomNumberOrigin, final double randomNumberBound )
     {
         return internalRand.doubles( streamSize, randomNumberOrigin, randomNumberBound );
     }
 
-    @Override
+    
     public DoubleStream doubles( final double randomNumberOrigin, final double randomNumberBound )
     {
         return internalRand.doubles( randomNumberOrigin, randomNumberBound );
+    }
+
+    public SecureRandom secureRandomInstance()
+    {
+        return SINGLETON.internalRand;
     }
 }

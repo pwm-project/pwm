@@ -20,7 +20,6 @@
 
 package password.pwm.util.java;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.filter.Filters;
@@ -160,7 +159,6 @@ public interface XmlDocument
         }
 
         @Override
-        @SuppressFBWarnings( "UL_UNRELEASED_LOCK_EXCEPTION_PATH" )
         public XmlDocument copy()
         {
             lock.lock();

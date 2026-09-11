@@ -144,7 +144,7 @@ class SelfCertGenerator
         throws Exception
     {
         final KeyPairGenerator kpGen = KeyPairGenerator.getInstance( settings.getKeyAlg(), "BC" );
-        kpGen.initialize( settings.getKeySize(), secureService == null ? new SecureRandom() : secureService.pwmRandom() );
+        kpGen.initialize( settings.getKeySize(), secureService == null ? new SecureRandom() : secureService.pwmRandom().secureRandomInstance() );
         return kpGen.generateKeyPair();
     }
 

@@ -91,7 +91,7 @@ public class JavaPwmHttpClient implements PwmHttpClientProvider
         try
         {
             final SSLContext sslContext = SSLContext.getInstance( "TLS" );
-            sslContext.init( null, this.trustManagers, pwmApplication.getSecureService().pwmRandom() );
+            sslContext.init( null, this.trustManagers, pwmApplication.getSecureService().pwmRandom().secureRandomInstance() );
 
             final SSLParameters sslParameters = new SSLParameters();
 
