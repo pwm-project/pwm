@@ -34,7 +34,7 @@
   "Display_InvalidVerification": "Viewing details only available after a user has been successfully verified",
   "Display_MatchCondition": "Match Condition",
   "Display_NoResponses": "User does not have responses",
-  "Display_PasswordGeneration": "The following passwords have been randomly generated for you.  These passwords are based on real words to make them easier to remember, but have been modified to make them difficult to guess.",
+  "Display_PasswordGeneration": "The following passwords have been randomly generated for you.",
   "Display_PasswordPrompt": "Please type your new password",
   "Display_PleaseWait": "Loading...",
   "Display_Random": "Random",
