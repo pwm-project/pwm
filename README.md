@@ -85,7 +85,7 @@ Official project page is at [https://github.com/pwm-project/pwm/](https://github
     * OrgChart view
   * Helpdesk password reset and intruder lockout clearing
   * Administration modules including intruder-lockout manager
-    * online log viewer
+    * online log viewer 
     * daily stats viewer and user information debugging
     * statistics
     * audit records
@@ -96,10 +96,10 @@ Official project page is at [https://github.com/pwm-project/pwm/](https://github
 * Theme-able interface with several example CSS themes
   * Mobile devices specific CSS themes
   * Configuration support for additional web assets (css, js, images, etc)
-  * Force display of organizational
+  * Force display of organizational 
 * Captcha support using Google reCaptcha
 * Multiple SSO options
-  * Basic Authentication
+  * Basic Authentication 
   * HTTP header username injection
   * Central Authentication Service (CAS)
   * OAuth client
@@ -109,22 +109,22 @@ Official project page is at [https://github.com/pwm-project/pwm/](https://github
   * Password policy reading
   * User attribute updates
   * Password policy verification
-* Outbound REST API for custom integrations during user activities such as change password, new user registration, etc.
+* Outbound REST API for custom integrations during user activities such as change password, new user registration, etc.    
 
 ## Requirements
 
 Minimum requirements for PWM application.
 
 | PWM Version | Java [^1] | Servlet | Tomcat [^2] |
-| --- | --- | --- | --- |
+| --- | -- | --- | --- |
 | v2.1 | 17 | 3.0 | 9 |
 | v2.0 | 11-17 | 3.0 | 8-9 |
-| v1.9 | 8-11 | 3.0 | 7-9 |
+| v1.9 | 11 | 3.0 | 7-9 |
 
-[^1] There is no requirement for a specific Java implementation, PWM builds use [Adoptium](https://adoptium.net/).
+[^1] There is no requirement for a specific Java implementation, PWM builds use [Adoptium](https://adoptium.net/). 
 
 [^2] Tomcat isn't an explicit requirement, but it is the most common container used with PWM, and
-the one that is used for the docker and onejar builds.
+ the one that is used for the docker and onejar builds.
 
 
 
@@ -138,14 +138,14 @@ PWM is distributed in the following artifacts, you can use whichever one is most
 | Docker | Docker image includes Java and Tomcat. |
 
 For all deployment types, each PWM instance will need an _applicationPath_ directory defined on your local server for PWM's configuration,
-log, and runtime files.  Once PWM is configured, the initial web UI will prompt the administrator for LDAP and other configuration settings.
+log, and runtime files.  Once PWM is configured, the initial web UI will prompt the administrator for LDAP and other configuration settings.  
 
 ### WAR
 
 Steps:
-1) Get Apache tomcat working to the point you can access the tomcat landing page with your browser.  See tomcat documentation/help sites for
+1) Get Apache tomcat working to the point you can access the tomcat landing page with your browser.  See tomcat documentation/help sites for 
    assistance with installing and configuring tomcat.
-2) Set the _PWM_APPLICATIONPATH_ environment variable in your tomcat instance to a local location of your _applicationPath_ directory. See tomcat and/or your
+2) Set the _PWM_APPLICATIONPATH_ environment variable in your tomcat instance to a local location of your _applicationPath_ directory. See tomcat and/or your 
    operating system documentation/help sites for assistance with configuring environment variables as the method for doing this depends on OS and deployment type.
 2) Place the pwm.war file in tomcat 'webapps' directory (rename from pwm-x.x.x.war with version naming)
 3) Access with /pwm url and configure
@@ -183,9 +183,9 @@ Steps:
 ```
 docker load --input=pwm-docker-image-v2.0.0.tar
 ```
-
+   
 1. Create docker image named _mypwm_, map to the server's 8443 port, and set the config volume to use the server's
-   local file system _/home/user/pwm-config_ folder:
+local file system _/home/user/pwm-config_ folder:
 ```
 docker create --name mypwm -p '8443:8443' --mount 'type=bind,source=/home/user/pwm-config,destination=/config' pwm/pwm-webapp
 ```
@@ -204,11 +204,11 @@ Build pre-requisites:
 
 Build steps:
 1. Set _JAVA_HOME_ environment variable to JDK home.
-1. Clone the git project
+1. Clone the git project 
 1. Change to pwm directory
-1. Run the maven build
-
-Linux example:
+1. Run the maven build 
+   
+Linux example: 
 ```
 export JAVA_HOME="/home/vm/JavaJDKDirectory"
 git clone https://github.com/pwm-project/pwm
