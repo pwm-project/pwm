@@ -3,6 +3,9 @@ name: Build
 on:
   push:
 
+permissions:
+  contents: read
+
 jobs:
   verify:
     name: verify (JDK ${{ matrix.java }})
