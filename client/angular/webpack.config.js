@@ -1,8 +1,8 @@
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
-const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
-const webpackMerge = require('webpack-merge');
+const TerserPlugin = require('terser-webpack-plugin');
+const { merge } = require('webpack-merge');
 const webpack = require('webpack');
 const autoPrefixer = require('autoprefixer');
 
@@ -42,44 +42,61 @@ module.exports = function (env, argv) {
                 {
                     test: /index-dev\.html$/,
                     loader: 'html-loader',
+                    options: {
+                        esModule: false,
+                        sources: false
+                    },
                     exclude: /node_modules/
                 },
                 {
                     test: /\.html$/,
-                    loader: 'ngtemplate-loader!html-loader',
+                    use: [
+                        'ngtemplate-loader',
+                        {
+                            loader: 'html-loader',
+                            options: {
+                                esModule: false
+                            }
+                        }
+                    ],
                     exclude: /index-dev\.html$/
                 },
                 {
                     test: /\.(scss)$/,
-                    loaders: [ 'style-loader', 'css-loader', 'sass-loader', {
+                    use: [ 'style-loader', 'css-loader', {
                         loader: 'postcss-loader',
                         options: {
-                            plugins: function () {
-                                return [autoPrefixer('last 2 versions')]
+                            postcssOptions: {
+                                plugins: [ autoPrefixer ]
                             }
                         }
-                    }]
+                    }, 'sass-loader']
                 },
                 {
                     test: /\.(png|jpg|jpeg|gif|svg)$/,
-                    loaders: [ 'url-loader?limit=25000' ]
+                    use: [ 'url-loader?limit=25000' ]
                 },
                 {
                     test: [
                         require.resolve("textangular"),
                         require.resolve("textangular/dist/textAngular-sanitize")
                     ],
-                    use: "imports-loader?angular"
+                    loader: "imports-loader",
+                    options: {
+                        imports: "side-effects angular"
+                    }
                 }
             ]
         },
         plugins: [
-            new CopyWebpackPlugin([
-                { from: 'node_modules/@microfocus/ux-ias/dist/ux-ias.css', to: 'vendor/ux-ias/' },
-                { from: 'node_modules/@microfocus/ias-icons/dist/ias-icons.css', to: 'vendor/ux-ias/' },
-                { from: 'node_modules/@microfocus/ias-icons/dist/fonts', to: 'vendor/ux-ias/fonts' },
-                { from: 'node_modules/textangular/dist/textAngular.css', to: 'vendor/textangular' }
-            ])
+            new CopyWebpackPlugin({
+                patterns: [
+                    { from: 'node_modules/@microfocus/ux-ias/dist/ux-ias.css', to: 'vendor/ux-ias/' },
+                    { from: 'node_modules/@microfocus/ias-icons/dist/ias-icons.css', to: 'vendor/ux-ias/' },
+                    { from: 'node_modules/@microfocus/ias-icons/dist/fonts', to: 'vendor/ux-ias/fonts' },
+                    { from: 'node_modules/textangular/dist/textAngular.css', to: 'vendor/textangular' }
+                ]
+            })
         ],
         optimization: {
             splitChunks: {
@@ -96,7 +113,7 @@ module.exports = function (env, argv) {
 
     if (isProductionMode) {
         // Production-specific configuration
-        return webpackMerge(commonConfig, {
+        return merge(commonConfig, {
             entry: {
                 'peoplesearch.ng': './src/modules/peoplesearch/main',
                 'helpdesk.ng': './src/modules/helpdesk/main'
@@ -104,12 +121,12 @@ module.exports = function (env, argv) {
             optimization:{
                 minimize: !disableMinimize,
                 minimizer: [
-                    new UglifyJsPlugin({
-                        sourceMap: true,
-                        uglifyOptions: {
+                    new TerserPlugin({
+                        terserOptions: {
                             compress: {warnings: false},
-                            comments: false
-                        }
+                            format: {comments: false}
+                        },
+                        extractComments: false
                     })
                 ]
             }
@@ -117,7 +134,7 @@ module.exports = function (env, argv) {
     }
     else {
         // Development-specific configuration
-        return webpackMerge(commonConfig, {
+        return merge(commonConfig, {
             entry: {
                 'peoplesearch.ng': './src/modules/peoplesearch/main',
                 'helpdesk.ng': './src/modules/helpdesk/main'
@@ -125,19 +142,15 @@ module.exports = function (env, argv) {
             plugins: [
                 new HtmlWebpackPlugin({
                     chunks: ['peoplesearch.ng', 'vendor'],
-                    chunksSortMode: 'dependency',
                     filename: 'peoplesearch.html',
                     template: 'src/index-dev.html',
-                    inject: 'body',
-                    livereload: true
+                    inject: 'body'
                 }),
                 new HtmlWebpackPlugin({
                     chunks: ['helpdesk.ng', 'vendor'],
-                    chunksSortMode: 'dependency',
                     filename: 'helpdesk.html',
                     template: 'src/index-dev.html',
-                    inject: 'body',
-                    livereload: true
+                    inject: 'body'
                 })
             ],
         });
