@@ -31,7 +31,7 @@
         <build.revision>0</build.revision>  <!-- default in case not set on command line -->
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-        <pwm.minimum.maven.version>3.6.3</pwm.minimum.maven.version>
+        <pwm.minimum.maven.version>3.9.11</pwm.minimum.maven.version>
         <lombok.version>1.18.48</lombok.version>
         <timestamp.iso>${maven.build.timestamp}</timestamp.iso>
         <maven.compiler.source>11</maven.compiler.source>
@@ -268,7 +268,7 @@
                     <dependency>
                         <groupId>com.puppycrawl.tools</groupId>
                         <artifactId>checkstyle</artifactId>
-                        <version>14.1.0</version>
+                        <version>10.21.2</version>
                     </dependency>
                 </dependencies>
                 <executions>
@@ -354,7 +354,6 @@
                 </dependencies>
                 <configuration>
                     <skip>${spotbugs.skip}</skip>
-                    <fork>false</fork>
                     <excludeFilterFile>${project.root.basedir}/build/spotbugs-exclude.xml</excludeFilterFile>
                     <includeTests>false</includeTests>
                     <effort>max</effort>
@@ -487,7 +486,7 @@
         <dependency>
             <groupId>org.assertj</groupId>
             <artifactId>assertj-core</artifactId>
-            <version>4.0.0-M1</version>
+            <version>3.27.7</version>
             <scope>test</scope>
         </dependency>
         <dependency>

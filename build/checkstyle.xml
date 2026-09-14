@@ -301,8 +301,7 @@
 
         <!-- javadoc -->
         <module name="AtclauseOrder"/>
-        <module name="JavadocMissingLeadingAsterisk"/>
-        <module name="JavadocMissingWhitespaceAfterAsterisk"/>
+        <module name="JavadocStyle"/>
         <module name="JavadocTagContinuationIndentation"/>
         <module name="NonEmptyAtclauseDescription"/>
         <module name="SingleLineJavadoc"/>
