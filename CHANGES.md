@@ -39,8 +39,10 @@
      are presented to the token endpoint: authorization header only
      (`client_secret_basic`), request body only (`client_secret_post`), or both.
      PWM has always sent both, which RFC 6749 section 2.3.1 forbids and which
-     PingFederate rejects with `invalid_request`.  Default remains both, so
-     existing NetIQ OSP deployments are unaffected.
+     PingFederate rejects with `invalid_request`.  The default is now request
+     body only (`client_secret_post`), which strict and permissive servers alike
+     accept; NetIQ OSP deployments that require the legacy behavior must set the
+     setting to both.
 - add `recovery.oauth.idserver.scope` ("OAuth Scope") setting on the Forgotten
      Password OAuth profile, mirroring the existing SSO-authentication scope
      setting.  The Forgotten Password flow previously had no way to send a

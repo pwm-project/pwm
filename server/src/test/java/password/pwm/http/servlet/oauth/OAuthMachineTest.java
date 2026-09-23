@@ -25,6 +25,7 @@ import org.junit.Test;
 import password.pwm.AppProperty;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
+import password.pwm.config.profile.ForgottenPasswordProfile;
 import password.pwm.config.stored.StoredConfigurationFactory;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.PasswordData;
@@ -157,28 +158,33 @@ public class OAuthMachineTest
     }
 
     /**
-     * The shipped default of the SSO authentication profile setting must remain PWM's legacy
-     * behavior of sending client credentials both in the authorization header and in the body.
+     * The shipped default of both OAuth profile settings is to send client credentials in the
+     * request body only ({@code client_secret_post}).
      */
     @Test
-    public void clientAuthMethodSettingDefaultsToLegacyBehavior()
+    public void clientAuthMethodSettingDefaultsToPost()
             throws PwmUnrecoverableException
     {
         final Configuration conf = new Configuration( StoredConfigurationFactory.newConfig() );
-        final OAuthClientAuthMethod method = conf.readSettingAsEnum(
-                PwmSetting.OAUTH_ID_CLIENT_AUTH_METHOD, OAuthClientAuthMethod.class );
 
-        Assert.assertEquals( OAuthClientAuthMethod.both, method );
-        Assert.assertEquals( OAuthClientAuthMethod.both, OAuthSettings.forSSOAuthentication( conf ).getEffectiveClientAuthMethod() );
+        Assert.assertEquals( OAuthClientAuthMethod.post, conf.readSettingAsEnum(
+                PwmSetting.OAUTH_ID_CLIENT_AUTH_METHOD, OAuthClientAuthMethod.class ) );
+        Assert.assertEquals( OAuthClientAuthMethod.post, OAuthSettings.forSSOAuthentication( conf ).getEffectiveClientAuthMethod() );
+
+        for ( final ForgottenPasswordProfile profile : conf.getForgottenPasswordProfiles().values() )
+        {
+            Assert.assertEquals( OAuthClientAuthMethod.post,
+                    OAuthSettings.forForgottenPassword( profile ).getEffectiveClientAuthMethod() );
+        }
     }
 
     /**
-     * An unset value must not disable client authentication; it falls back to the legacy behavior.
+     * An unset value must not disable client authentication; it falls back to the default.
      */
     @Test
     public void clientAuthMethodFallsBackWhenUnset()
     {
-        Assert.assertEquals( OAuthClientAuthMethod.both, OAuthSettings.builder().build().getEffectiveClientAuthMethod() );
+        Assert.assertEquals( OAuthClientAuthMethod.post, OAuthSettings.builder().build().getEffectiveClientAuthMethod() );
     }
 
     @Test

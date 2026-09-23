@@ -51,11 +51,12 @@ public class OAuthSettings implements Serializable
 
     /**
      * How client credentials are presented to the token endpoint.  Never null; an unset or
-     * unrecognized configured value falls back to PWM's legacy behavior of sending both.
+     * unrecognized configured value falls back to the default of sending them in the request body
+     * only ({@code client_secret_post}).
      */
     public OAuthClientAuthMethod getEffectiveClientAuthMethod()
     {
-        return clientAuthMethod == null ? OAuthClientAuthMethod.both : clientAuthMethod;
+        return clientAuthMethod == null ? OAuthClientAuthMethod.post : clientAuthMethod;
     }
 
     public boolean oAuthIsConfigured()

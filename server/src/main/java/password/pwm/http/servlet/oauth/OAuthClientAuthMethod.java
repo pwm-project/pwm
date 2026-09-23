@@ -29,9 +29,10 @@ package password.pwm.http.servlet.oauth;
  * <code>client_id</code>/<code>client_secret</code> form parameters at the same time.  Others,
  * notably NetIQ OSP, have historically been sent both by PWM.</p>
  *
- * <p>The default is {@link #both}, which preserves PWM's long-standing behavior.  Deployments
- * against a strict authorization server select {@link #basic} or {@link #post} to match how the
- * client is registered.</p>
+ * <p>The default is {@link #post}, which sends the credentials as form parameters only and is
+ * accepted by both strict and permissive authorization servers.  Deployments whose client is
+ * registered for {@code client_secret_basic} select {@link #basic}; {@link #both} remains
+ * available for servers, such as NetIQ OSP, that expect PWM's legacy behavior.</p>
  */
 public enum OAuthClientAuthMethod
 {
@@ -41,7 +42,7 @@ public enum OAuthClientAuthMethod
     /** Send {@code client_id}/{@code client_secret} form parameters only.  Equivalent to OIDC {@code client_secret_post}. */
     post,
 
-    /** Send both, PWM's legacy behavior. */
+    /** Send both, PWM's legacy behavior; required by NetIQ OSP. */
     both,;
 
     /**

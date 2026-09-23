@@ -28,14 +28,16 @@ These are the critical differences from a NetIQ OSP setup.
 
 - **Setting:** `OAuth Client Authentication Method` (`oauth.idserver.clientAuthMethod` /
   `recovery.oauth.idserver.clientAuthMethod`)
-- **Default:** `Authorization Header and Request Body` (**both**)
-- **Set to for Ping:** `Authorization Header Only (client_secret_basic)` **or**
-  `Request Body Only (client_secret_post)` — match how the client is registered in PingFederate.
+- **Default:** `Request Body Only (client_secret_post)` (**post**)
+- **Set to for Ping:** leave at the default, or select
+  `Authorization Header Only (client_secret_basic)` — match how the client is registered in
+  PingFederate.
 
 **Why:** RFC 6749 §2.3.1 states a client must not use more than one authentication method per
 request. PingFederate rejects a token request that carries the client credentials in *both* the
 Authorization header and the request body with an `invalid_request` error. This is the single most
-common cause of a failed Ping integration. The default remains "both" because NetIQ OSP requires it.
+common cause of a failed Ping integration. The default is "post", which is accepted by strict and
+permissive servers alike; a NetIQ OSP server needs this set to "both".
 
 ### 2. OAuth/OIDC User Name Claim
 
@@ -113,7 +115,8 @@ needed:
 2. **OAuth Token / Code Resolve Service URL** → Ping token endpoint.
 3. **OAuth Client ID** / **OAuth Shared Secret** → from the Ping client registration.
 4. **OAuth Server Certificate** → import Ping's TLS cert.
-5. **OAuth Client Authentication Method** → set to `basic` or `post` to match Ping (**not** "both").
+5. **OAuth Client Authentication Method** → leave at the default `post`, or set `basic`, to match
+   Ping (**not** "both").
 6. **OAuth/OIDC User Name Claim** → the `id_token` claim to read (e.g. `sub`).
 7. **OAuth Scope** → include `openid`.
 8. *(Forgotten Password only)* set **OAuth Scope** and optionally **OAuth/OIDC login_hint Value**.
@@ -130,8 +133,9 @@ needed:
 
 - The `id_token` is validated for the registered `aud`, `azp`, `exp`, and `nbf` claims.
 - Encrypted (JWE) tokens and malformed JWTs are rejected with actionable errors.
-- All new settings default to empty / "both", so existing NetIQ OSP deployments see **no behavior
-  change**. Ping support is strictly opt-in.
+- The client authentication method defaults to "post" (request body only). NetIQ OSP deployments
+  that relied on PWM's legacy behavior of sending credentials in both places must set this setting
+  to "both" explicitly. The other new settings default to empty and are opt-in.
 
 _Implemented in `OAuthIdTokenReader`, `OAuthClientAuthMethod`, `OAuthMachine`, and `OAuthSettings`
 (commit `bb0779008`)._

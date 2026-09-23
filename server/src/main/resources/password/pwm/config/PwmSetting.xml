@@ -2530,7 +2530,7 @@
     </setting>
     <setting hidden="false" key="recovery.oauth.idserver.clientAuthMethod" level="2">
         <default>
-            <value>both</value>
+            <value>post</value>
         </default>
         <options>
             <option value="both">Authorization Header and Request Body</option>
@@ -4132,7 +4132,7 @@
     </setting>
     <setting hidden="false" key="oauth.idserver.clientAuthMethod" level="2">
         <default>
-            <value>both</value>
+            <value>post</value>
         </default>
         <options>
             <option value="both">Authorization Header and Request Body</option>
