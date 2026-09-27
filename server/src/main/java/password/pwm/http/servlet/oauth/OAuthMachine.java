@@ -305,10 +305,17 @@ public class OAuthMachine
         {
             final Configuration config = pwmRequest.getConfig();
             final String requestUrl = settings.getAttributesUrl();
+            final OAuthClientAuthMethod clientAuthMethod = settings.getEffectiveClientAuthMethod();
             final Map<String, String> requestParams = new HashMap<>();
-            requestParams.put( config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_ACCESS_TOKEN ), accessToken );
+            if ( clientAuthMethod.sendAccessTokenInBody() )
+            {
+                requestParams.put( config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_ACCESS_TOKEN ), accessToken );
+            }
             requestParams.put( config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_ATTRIBUTES ), settings.getDnAttributeName() );
-            restResults = makeHttpRequest( pwmRequest, "OAuth userinfo", settings, requestUrl, requestParams, accessToken, false );
+            // Pass the bearer token so the Authorization header is sent.  clientAuthInHeader stays
+            // false: userinfo must not fall back to HTTP Basic client credentials.
+            final String bearerToken = clientAuthMethod.sendAccessTokenInHeader() ? accessToken : null;
+            restResults = makeHttpRequest( pwmRequest, "OAuth userinfo", settings, requestUrl, requestParams, bearerToken, false );
         }
 
         final String resultBody = restResults.getBody();

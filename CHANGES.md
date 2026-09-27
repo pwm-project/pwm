@@ -43,6 +43,17 @@
      body only (`client_secret_post`), which strict and permissive servers alike
      accept; NetIQ OSP deployments that require the legacy behavior must set the
      setting to both.
+- send the profile/userinfo access token according to the OAuth Client
+     Authentication Method.  `basic` (`client_secret_basic`) and `post`
+     (`client_secret_post`) send only an `Authorization: Bearer` header.
+     RFC 6750 section 2 allows one method per request, section 2.1 requires
+     servers to accept the header, and OIDC Core section 5.3.1 directs
+     clients to it; a form-body token is optional, so the `post` default does
+     not put the token in the body.  `both` keeps the legacy header plus
+     `access_token` form parameter for NetIQ OSP.  PWM previously always sent
+     both, which PingFederate's userinfo endpoint rejects with HTTP 400.  The
+     userinfo request does not fall back to HTTP Basic client credentials.
+     Token-endpoint client authentication is unchanged.
 - add `recovery.oauth.idserver.scope` ("OAuth Scope") setting on the Forgotten
      Password OAuth profile, mirroring the existing SSO-authentication scope
      setting.  The Forgotten Password flow previously had no way to send a

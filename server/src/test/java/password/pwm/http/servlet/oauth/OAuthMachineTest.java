@@ -20,14 +20,25 @@
 
 package password.pwm.http.servlet.oauth;
 
+import org.apache.http.HttpStatus;
 import org.junit.Assert;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mockito;
 import password.pwm.AppProperty;
+import password.pwm.PwmApplication;
+import password.pwm.bean.SessionLabel;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.profile.ForgottenPasswordProfile;
 import password.pwm.config.stored.StoredConfigurationFactory;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.http.HttpHeader;
+import password.pwm.http.PwmRequest;
+import password.pwm.svc.httpclient.HttpClientService;
+import password.pwm.svc.httpclient.PwmHttpClient;
+import password.pwm.svc.httpclient.PwmHttpClientRequest;
+import password.pwm.svc.httpclient.PwmHttpClientResponse;
 import password.pwm.util.PasswordData;
 
 import java.util.Map;
@@ -195,6 +206,8 @@ public class OAuthMachineTest
         Assert.assertTrue( method.sendCredentialsInHeader() );
         Assert.assertFalse( method.sendCredentialsInBody() );
         Assert.assertFalse( method.requiresCredentialsInBody() );
+        Assert.assertTrue( method.sendAccessTokenInHeader() );
+        Assert.assertFalse( method.sendAccessTokenInBody() );
     }
 
     @Test
@@ -205,6 +218,8 @@ public class OAuthMachineTest
         Assert.assertFalse( method.sendCredentialsInHeader() );
         Assert.assertTrue( method.sendCredentialsInBody() );
         Assert.assertTrue( method.requiresCredentialsInBody() );
+        Assert.assertTrue( method.sendAccessTokenInHeader() );
+        Assert.assertFalse( method.sendAccessTokenInBody() );
     }
 
     @Test
@@ -215,6 +230,65 @@ public class OAuthMachineTest
         Assert.assertTrue( method.sendCredentialsInHeader() );
         Assert.assertTrue( method.sendCredentialsInBody() );
         Assert.assertFalse( method.requiresCredentialsInBody() );
+        Assert.assertTrue( method.sendAccessTokenInHeader() );
+        Assert.assertTrue( method.sendAccessTokenInBody() );
+    }
+
+    /**
+     * The profile/userinfo request sends the access token as {@code Authorization: Bearer} for
+     * every client authentication method, and adds the {@code access_token} form parameter only
+     * for {@link OAuthClientAuthMethod#both}.  It must not fall back to HTTP Basic client
+     * credentials.
+     */
+    @Test
+    public void userInfoRequestSendsAccessTokenPerClientAuthMethod()
+            throws Exception
+    {
+        final Configuration conf = new Configuration( StoredConfigurationFactory.newConfig() );
+        final String accessToken = "userinfo-access-token";
+        final String attribute = "mail";
+
+        for ( final OAuthClientAuthMethod method : OAuthClientAuthMethod.values() )
+        {
+            final OAuthSettings settings = baseSettings()
+                    .attributesUrl( "https://pingfederate.example.com/idp/userinfo.openid" )
+                    .dnAttributeName( attribute )
+                    .clientAuthMethod( method )
+                    .build();
+
+            final PwmHttpClient httpClient = Mockito.mock( PwmHttpClient.class );
+            final HttpClientService httpClientService = Mockito.mock( HttpClientService.class );
+            final PwmApplication pwmApplication = Mockito.mock( PwmApplication.class );
+            final PwmRequest pwmRequest = Mockito.mock( PwmRequest.class );
+
+            Mockito.when( pwmRequest.getConfig() ).thenReturn( conf );
+            Mockito.when( pwmRequest.getPwmApplication() ).thenReturn( pwmApplication );
+            Mockito.when( pwmRequest.getLabel() ).thenReturn( SessionLabel.builder().sessionID( "test" ).build() );
+            Mockito.when( pwmApplication.getHttpClientService() ).thenReturn( httpClientService );
+            Mockito.when( httpClientService.getPwmHttpClient( Mockito.any() ) ).thenReturn( httpClient );
+            Mockito.when( httpClient.makeRequest( Mockito.any( PwmHttpClientRequest.class ), Mockito.any( SessionLabel.class ) ) )
+                    .thenReturn( PwmHttpClientResponse.builder()
+                            .statusCode( HttpStatus.SC_OK )
+                            .body( "{\"" + attribute + "\":\"ada\"}" )
+                            .build() );
+
+            final OAuthMachine machine = new OAuthMachine( null, settings );
+            Assert.assertEquals( "ada", machine.makeOAuthGetUserInfoRequest( pwmRequest, accessToken ) );
+
+            final ArgumentCaptor<PwmHttpClientRequest> requestCaptor = ArgumentCaptor.forClass( PwmHttpClientRequest.class );
+            Mockito.verify( httpClient ).makeRequest( requestCaptor.capture(), Mockito.any( SessionLabel.class ) );
+
+            final PwmHttpClientRequest sent = requestCaptor.getValue();
+            final String authorization = sent.getHeaders().get( HttpHeader.Authorization.getHttpName() );
+            Assert.assertEquals( method.name() + " bearer header", "Bearer " + accessToken, authorization );
+
+            final String body = sent.getBody() == null ? "" : sent.getBody();
+            Assert.assertEquals( method.name() + " access_token form parameter",
+                    method == OAuthClientAuthMethod.both, body.contains( "access_token=" + accessToken ) );
+            Assert.assertFalse( method.name() + " must not send client_id", body.contains( "client_id=" ) );
+            Assert.assertFalse( method.name() + " must not send client_secret", body.contains( "client_secret=" ) );
+            Assert.assertTrue( body.contains( "attributes=" + attribute ) );
+        }
     }
 
     /**

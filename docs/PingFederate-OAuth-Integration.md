@@ -5,8 +5,9 @@ OIDC provider) for SSO login and/or the Forgotten Password flow.
 
 PWM's OAuth defaults were originally designed for **NetIQ OSP**. Two behaviors that OSP relies on
 are incompatible with PingFederate out of the box, so this integration adds settings to opt into
-standards-compliant behavior. All new settings default to the legacy (OSP) behavior, so existing
-deployments are unaffected until you change them.
+standards-compliant behavior. The client authentication method defaults to `post` (request body
+only). The other new settings default to empty. NetIQ OSP deployments that need the legacy
+credential and userinfo behavior set the client authentication method to "both".
 
 There are two independent OAuth configurations in PWM:
 
@@ -38,6 +39,17 @@ request. PingFederate rejects a token request that carries the client credential
 Authorization header and the request body with an `invalid_request` error. This is the single most
 common cause of a failed Ping integration. The default is "post", which is accepted by strict and
 permissive servers alike; a NetIQ OSP server needs this set to "both".
+
+The same setting controls how the access token is sent on the profile/userinfo request (used only
+when no User Name Claim is configured). `basic` and `post` send the token only as an
+`Authorization: Bearer` header. `both` keeps PWM's legacy behavior: that header and an
+`access_token` form parameter, which NetIQ OSP expects. RFC 6750 §2 allows only one method per
+request. §2.1 requires servers to accept the header, while a form-body token is optional, and
+OIDC Core §5.3.1 directs clients to the header. The client authentication method governs how
+client credentials reach the token endpoint, so `post` still uses the bearer header for userinfo;
+body-only userinfo would risk breaking the default. PingFederate's userinfo endpoint rejects a
+request that sends the token both ways with HTTP 400. The userinfo call does not fall back to
+HTTP Basic client credentials.
 
 ### 2. OAuth/OIDC User Name Claim
 
@@ -136,6 +148,9 @@ needed:
 - The client authentication method defaults to "post" (request body only). NetIQ OSP deployments
   that relied on PWM's legacy behavior of sending credentials in both places must set this setting
   to "both" explicitly. The other new settings default to empty and are opt-in.
+- On the profile/userinfo request, `basic` and `post` send the access token only as an
+  `Authorization: Bearer` header. `both` also sends an `access_token` form parameter, for NetIQ
+  OSP. The default (`post`) therefore does not put the userinfo token in the body.
 
 _Implemented in `OAuthIdTokenReader`, `OAuthClientAuthMethod`, `OAuthMachine`, and `OAuthSettings`
 (commit `bb0779008`)._

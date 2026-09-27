@@ -33,6 +33,15 @@ package password.pwm.http.servlet.oauth;
  * accepted by both strict and permissive authorization servers.  Deployments whose client is
  * registered for {@code client_secret_basic} select {@link #basic}; {@link #both} remains
  * available for servers, such as NetIQ OSP, that expect PWM's legacy behavior.</p>
+ *
+ * <p>The same setting governs how the access token is presented on the profile/userinfo request.
+ * {@link #basic} and {@link #post} send only an {@code Authorization: Bearer} header.  RFC 6750
+ * section 2 allows only one method per request, section 2.1 requires servers to accept the header
+ * (a form-body token is optional), and OIDC Core section 5.3.1 directs clients to the header, so
+ * the {@link #post} default does not put the token in the body.  {@link #both} also sends an
+ * {@code access_token} form parameter, preserving PWM's legacy behavior for NetIQ OSP.  Userinfo
+ * never falls back to HTTP Basic client credentials; those still apply only to the token
+ * endpoint.</p>
  */
 public enum OAuthClientAuthMethod
 {
@@ -68,5 +77,27 @@ public enum OAuthClientAuthMethod
     boolean requiresCredentialsInBody()
     {
         return this == post;
+    }
+
+    /**
+     * Whether the access token is sent as an RFC 6750 {@code Authorization: Bearer} header on
+     * profile/userinfo requests.  Every method sends the header.  A form-body token is optional
+     * (RFC 6750 section 2.1) and OIDC Core section 5.3.1 directs clients to the header, so
+     * {@link #post} must not omit it.
+     */
+    boolean sendAccessTokenInHeader()
+    {
+        return this == basic || this == post || this == both;
+    }
+
+    /**
+     * Whether the access token is also sent as an {@code access_token} form parameter on
+     * profile/userinfo requests.  RFC 6750 section 2 forbids more than one method per request,
+     * which PingFederate enforces with a 400 response.  Only {@link #both} keeps the parameter,
+     * for NetIQ OSP compatibility.
+     */
+    boolean sendAccessTokenInBody()
+    {
+        return this == both;
     }
 }
