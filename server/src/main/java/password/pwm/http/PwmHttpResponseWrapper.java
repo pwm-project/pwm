@@ -21,11 +21,8 @@
 package password.pwm.http;
 
 import password.pwm.AppProperty;
-import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.config.Configuration;
-import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.http.filter.CookieManagementFilter;
 import password.pwm.util.Validator;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.StringUtil;
@@ -209,23 +206,9 @@ public class PwmHttpResponseWrapper
         {
             LOGGER.warn( () -> "writing large cookie to response: cookieName=" + cookieName + ", length=" + value.length() );
         }
+        // SameSite attribute is applied by CookieManagementFilter via a response wrapper
+        // so it can be added while the response is still writable (see issue #716).
         this.getHttpServletResponse().addCookie( theCookie );
-        addSameSiteCookieAttribute();
-    }
-
-    void addSameSiteCookieAttribute( )
-    {
-        final PwmApplication pwmApplication;
-        try
-        {
-            pwmApplication = ContextManager.getPwmApplication( this.httpServletRequest );
-            final String value = pwmApplication.getConfig().readAppProperty( AppProperty.HTTP_COOKIE_SAMESITE_VALUE );
-            CookieManagementFilter.addSameSiteCookieAttribute( httpServletResponse, value );
-        }
-        catch ( final PwmUnrecoverableException e )
-        {
-            LOGGER.trace( () -> "unable to load application configuration while checking samesite cookie attribute config", e );
-        }
     }
 
     public void removeCookie( final String cookieName, final CookiePath path )
