@@ -457,7 +457,14 @@ public class PasswordUtility
         }
         catch ( final ChaiOperationException e )
         {
-            final String errorMsg = "error setting password for user '" + userIdentity.toDisplayString() + "'' " + e.getMessage();
+            // Log the underlying LDAP error here, otherwise the diagnostic detail is only
+            // visible at DEBUG level after the PwmOperationalException propagates up to the
+            // servlet's catch block (issue #728). This is critical for diagnosing proxy
+            // permission failures - especially in Active Directory environments where
+            // AdminSDHolder blocks ACL inheritance on protected accounts and the proxy
+            // account's delegated permissions silently fail to reach the target user.
+            final String errorMsg = "error setting password for user '" + userIdentity.toDisplayString() + "': " + e.getMessage();
+            LOGGER.error( sessionLabel, () -> errorMsg );
             final PwmError pwmError = PwmError.forChaiError( e.getErrorCode() ) == null ? PwmError.ERROR_INTERNAL : PwmError.forChaiError( e.getErrorCode() );
             final ErrorInformation error = new ErrorInformation( pwmError, errorMsg );
             throw new PwmOperationalException( error );

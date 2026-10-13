@@ -20,6 +20,8 @@
 
 package password.pwm.error;
 
+import com.novell.ldapchai.exception.ChaiError;
+import org.junit.Assert;
 import org.junit.Test;
 import password.pwm.PwmConstants;
 
@@ -50,5 +52,29 @@ public class PwmErrorTest
         {
             pwmError.getLocalizedMessage( PwmConstants.DEFAULT_LOCALE, null );
         }
+    }
+
+    /**
+     * Issue #728: verify that an LDAP NO_ACCESS error - which Chai produces when the
+     * proxy account lacks ACL permission to modify the target user (common in Active
+     * Directory with AdminSDHolder) - is mapped to a specific PWM error rather than
+     * falling through to ERROR_INTERNAL or being misreported as PASSWORD_BADPASSWORD.
+     */
+    @Test
+    public void testChaiNoAccessMapsToPermissionDenied()
+    {
+        Assert.assertEquals( PwmError.ERROR_LDAP_PERMISSION_DENIED, PwmError.forChaiError( ChaiError.NO_ACCESS ) );
+    }
+
+    /**
+     * Issue #728: the new error must resolve to a non-empty localized message at the
+     * default locale, otherwise the user will see only a bare error code.
+     */
+    @Test
+    public void testPermissionDeniedHasLocalizedMessage()
+    {
+        final String message = PwmError.ERROR_LDAP_PERMISSION_DENIED.getLocalizedMessage( PwmConstants.DEFAULT_LOCALE, null );
+        Assert.assertNotNull( message );
+        Assert.assertFalse( "ERROR_LDAP_PERMISSION_DENIED resolves to an empty message", message.isEmpty() );
     }
 }

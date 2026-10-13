@@ -224,7 +224,11 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet
         }
         catch ( final PwmOperationalException e )
         {
-            LOGGER.debug( () -> e.getErrorInformation().toDebugStr() );
+            // A submitted password being rejected by the backend is an operational error,
+            // not a debug-level event. Logging at ERROR ensures the underlying cause
+            // (LDAP error code/message attached by PasswordUtility.setPassword) is visible
+            // at default production log levels (issue #728).
+            LOGGER.error( pwmRequest, () -> "change-password operation failed: " + e.getErrorInformation().toDebugStr() );
             setLastError( pwmRequest, e.getErrorInformation() );
         }
 

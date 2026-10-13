@@ -1,5 +1,19 @@
 # Changelog
 
+## [Unreleased]
+- fix issue #728 - log LDAP errors when proxy-based password change fails.
+     `PasswordUtility.setPassword` now logs the underlying `ChaiException`
+     at ERROR level before throwing, and `ChangePasswordServlet` promotes
+     its `PwmOperationalException` catch from DEBUG to ERROR so the
+     diagnostic detail is visible at default production log levels.
+     Adds new error code `5108 ERROR_LDAP_PERMISSION_DENIED` mapped to
+     `ChaiError.NO_ACCESS` so administrators see a specific
+     "insufficient permissions" message instead of the misleading
+     `4006 PASSWORD_BADPASSWORD` or generic `ERROR_INTERNAL`.  The
+     `ERROR_UNLOCK_FAILURE` log line in the Forgotten Password flow now
+     hints that a permission error there will likely affect the
+     subsequent password change as well.
+
 ## [2.0.8] - Release Feb 21, 2025
 - fix issue #711 ERROR_INVALID_FORMID and other errors with 
      recaptcha enabled in chrome and some other browsers
