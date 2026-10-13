@@ -23,16 +23,15 @@ package password.pwm.util.secure;
 import password.pwm.AppProperty;
 import password.pwm.PwmConstants;
 import password.pwm.config.Configuration;
-import password.pwm.error.PwmError;
-import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.logging.PwmLogger;
 
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509TrustManager;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
-import java.security.SignatureException;
+import java.io.IOException;
+import java.security.GeneralSecurityException;
+import java.security.KeyStore;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
@@ -94,70 +93,99 @@ public class PwmTrustManager implements X509TrustManager
     )
             throws CertificateException
     {
-        final Optional<List<X509Certificate>> rootCa = X509Utils.extractRootCaCertificates( trustedCertificates );
-
         if ( JavaHelper.isEmpty( trustedCertificates ) )
         {
             final String errorMsg = "no ROOT certificates in configuration trust store for this operation";
             throw new CertificateException( errorMsg );
         }
 
+        final Optional<List<X509Certificate>> rootCa = X509Utils.extractRootCaCertificates( trustedCertificates );
+
         if ( rootCa.isPresent() )
         {
-            for ( final X509Certificate presentedCert : presentedCertificates )
-            {
-                try
-                {
-                    doRootCaValidation( rootCa.get(), presentedCert );
-                }
-                catch ( final PwmUnrecoverableException e )
-                {
-                    throw new CertificateException( e.getMessage() );
-                }
-            }
+            validateUsingCaCertificates( rootCa.get(), presentedCertificates );
             return;
         }
 
         doSelfSignedValidation( trustedCertificates, presentedCertificates );
     }
 
-    private static void doRootCaValidation(
-            final List<X509Certificate> rootCertificates,
-            final X509Certificate testCertificate
+    /**
+     * Validate the presented certificate chain against the configured CA certificate(s) using a standard
+     * PKIX certification-path validator (RFC 5280).  The configured CA certificate(s) are used as trust
+     * anchors and the intermediate certificate(s) supplied by the remote server are used to build the path.
+     *
+     * <p>This replaces an earlier flat, per-certificate signature check which required every certificate
+     * presented by the server to be <em>directly</em> signed by a configured certificate.  That earlier
+     * behavior meant that, for a typical {@code leaf -> intermediate -> root} chain, configuring only the
+     * root CA was insufficient (the leaf is signed by the intermediate, not the root) and every intermediate
+     * had to be configured explicitly.  Proper path building lets a configured root CA validate the full
+     * chain using the server-supplied intermediate(s).  See pwm-project/pwm issue 735.</p>
+     */
+    private void validateUsingCaCertificates(
+            final List<X509Certificate> caCertificates,
+            final List<X509Certificate> presentedCertificates
     )
-            throws PwmUnrecoverableException
+            throws CertificateException
     {
-        boolean passed = false;
-        final StringBuilder errorText = new StringBuilder(  );
-        for ( final X509Certificate rootCA : rootCertificates )
+        if ( JavaHelper.isEmpty( presentedCertificates ) )
         {
-            if ( !passed )
+            throw new CertificateException( "no certificates were presented by the remote server" );
+        }
+
+        final X509TrustManager delegateTrustManager;
+        try
+        {
+            final KeyStore keyStore = KeyStore.getInstance( KeyStore.getDefaultType() );
+            keyStore.load( null, null );
+
+            int index = 0;
+            for ( final X509Certificate caCertificate : caCertificates )
             {
-                try
+                keyStore.setCertificateEntry( "ca-" + index, caCertificate );
+                index++;
+            }
+
+            // explicitly request PKIX (rather than getDefaultAlgorithm(), which can be overridden to the
+            // legacy SunX509 via the ssl.TrustManagerFactory.algorithm security property) so that proper
+            // RFC 5280 certification-path building is always used.
+            final TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance( "PKIX" );
+            trustManagerFactory.init( keyStore );
+
+            delegateTrustManager = firstX509TrustManager( trustManagerFactory.getTrustManagers() );
+        }
+        catch ( final GeneralSecurityException | IOException e )
+        {
+            throw new CertificateException( "unable to initialize PKIX trust manager for configured CA certificate(s): " + e.getMessage() );
+        }
+
+        try
+        {
+            final X509Certificate[] chain = presentedCertificates.toArray( new X509Certificate[0] );
+            final String authType = chain[0].getPublicKey().getAlgorithm();
+            delegateTrustManager.checkServerTrusted( chain, authType );
+        }
+        catch ( final CertificateException e )
+        {
+            final String errorMsg = "server certificate chain is not trusted by configured ROOT CA certificate(s): " + e.getMessage();
+            LOGGER.trace( () -> errorMsg );
+            throw new CertificateException( errorMsg );
+        }
+    }
+
+    private static X509TrustManager firstX509TrustManager( final TrustManager[] trustManagers ) throws CertificateException
+    {
+        if ( trustManagers != null )
+        {
+            for ( final TrustManager trustManager : trustManagers )
+            {
+                if ( trustManager instanceof X509TrustManager )
                 {
-                    // first check certificate equality.  if certificate is same, we don't need to verify it signed itself
-                    if ( !testCertificate.equals( rootCA ) )
-                    {
-                        testCertificate.verify( rootCA.getPublicKey() );
-                    }
-                    passed = true;
-                }
-                catch ( final NoSuchAlgorithmException | SignatureException | NoSuchProviderException | InvalidKeyException | CertificateException e )
-                {
-                    final String msg = "server certificate " + X509Utils.makeDebugText( testCertificate )
-                            + " is not trusted by ROOT CA " + X509Utils.makeDebugText( rootCA );
-                    LOGGER.trace( () -> msg );
-                    errorText.append( msg ).append( "  " );
+                    return ( X509TrustManager ) trustManager;
                 }
             }
         }
-
-        if ( !passed )
-        {
-            final String errorMsg = "server certificate " + X509Utils.makeDebugText( testCertificate )
-                    + " is not signed by configured ROOT CA certificate(s): " + errorText.toString();
-            throw PwmUnrecoverableException.newException( PwmError.ERROR_CERTIFICATE_ERROR, errorMsg );
-        }
+        throw new CertificateException( "no X509TrustManager available for configured CA certificate(s)" );
     }
 
     private void doSelfSignedValidation(
