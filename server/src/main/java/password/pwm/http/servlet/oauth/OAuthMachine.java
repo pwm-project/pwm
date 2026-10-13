@@ -134,6 +134,12 @@ public class OAuthMachine
             {
                 urlParams.put( "parameters", parametersValue );
             }
+
+            final String loginHintValue = figureLoginHintValue( pwmRequest, userIdentity );
+            if ( !StringUtil.isEmpty( loginHintValue ) )
+            {
+                urlParams.put( config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_LOGIN_HINT ), loginHintValue );
+            }
         }
 
         final String redirectUrl = PwmURL.appendAndEncodeUrlParameters( settings.getLoginURL(), urlParams );
@@ -488,6 +494,35 @@ public class OAuthMachine
         final String data = resultBodyMap.get( "data" );
         LOGGER.debug( sessionLabel, () -> "oauth /sign endpoint returned signed username data: " + data );
         return data;
+    }
+
+    /**
+     * Computes the value to send as the standard OIDC <code>login_hint</code> query parameter
+     * on the authorize redirect, so the remote OAuth/OIDC server can pre-fill the username
+     * field and avoid prompting the user a second time (issue #723).  Returns {@code null}
+     * if no macro is configured, the macro expands to empty, or no user identity is known.
+     */
+    private String figureLoginHintValue(
+            final PwmRequest pwmRequest,
+            final UserIdentity userIdentity
+    )
+            throws PwmUnrecoverableException
+    {
+        if ( userIdentity == null )
+        {
+            return null;
+        }
+
+        final String macroText = settings.getLoginHintValue();
+        if ( StringUtil.isEmpty( macroText ) )
+        {
+            return null;
+        }
+
+        final MacroRequest macroRequest = MacroRequest.forUser( pwmRequest, userIdentity );
+        final String expanded = macroRequest.expandMacros( macroText );
+        LOGGER.debug( sessionLabel, () -> "calculated login_hint value for user as: " + expanded );
+        return expanded;
     }
 
     public String readAttributeFromBodyMap(
