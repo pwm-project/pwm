@@ -24,6 +24,7 @@ import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.PwmApplication;
+import password.pwm.PwmConstants;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.value.data.ActionConfiguration;
@@ -44,6 +45,7 @@ import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroRequest;
 
+import java.security.cert.X509Certificate;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -207,22 +209,8 @@ public class ActionExecutor
                     .headers( headers )
                     .build();
 
-            final PwmHttpClient client;
-            {
-                if ( webAction.getCertificates() != null )
-                {
-                    final PwmHttpClientConfiguration clientConfiguration = PwmHttpClientConfiguration.builder()
-                            .trustManagerType( PwmHttpClientConfiguration.TrustManagerType.configuredCertificates )
-                            .certificates( webAction.getCertificates() )
-                            .build();
-
-                    client = pwmApplication.getHttpClientService().getPwmHttpClient( clientConfiguration );
-                }
-                else
-                {
-                    client = pwmApplication.getHttpClientService().getPwmHttpClient( );
-                }
-            }
+            final PwmHttpClient client = pwmApplication.getHttpClientService().getPwmHttpClient(
+                    makeWebActionClientConfiguration( webAction.getCertificates() ) );
             final PwmHttpClientResponse clientResponse = client.makeRequest( clientRequest, sessionLabel );
 
             final List<Integer> successStatus = webAction.getSuccessStatus() == null
@@ -255,6 +243,33 @@ public class ActionExecutor
         }
     }
 
+    /**
+     * Web service action bodies and headers are typically built from macros such as {@code @User:Password@},
+     * so the request/response body is always masked in the http client debug log output.
+     */
+    static PwmHttpClientConfiguration makeWebActionClientConfiguration( final List<X509Certificate> certificates )
+    {
+        final PwmHttpClientConfiguration.PwmHttpClientConfigurationBuilder builder = PwmHttpClientConfiguration.builder()
+                .maskBodyDebugOutput( true );
+
+        if ( certificates != null )
+        {
+            builder.trustManagerType( PwmHttpClientConfiguration.TrustManagerType.configuredCertificates );
+            builder.certificates( certificates );
+        }
+
+        return builder.build();
+    }
+
+    /**
+     * Log message for a completed ldap action.  The attribute value is never included because it is
+     * typically the result of macro expansion and may contain a password or other sensitive data.
+     */
+    static String makeLdapActionLogMessage( final String operation, final String userDN, final String attrName )
+    {
+        return operation + " attribute on user " + userDN + " (" + attrName + "=" + PwmConstants.LOG_REMOVED_VALUE_REPLACEMENT + ")";
+    }
+
     private static void writeLdapAttribute(
             final SessionLabel sessionLabel,
             final ChaiUser theUser,
@@ -282,7 +297,7 @@ public class ActionExecutor
                 try
                 {
                     theUser.writeStringAttribute( attrName, effectiveAttrValue );
-                    LOGGER.info( sessionLabel, () -> "replaced attribute on user " + theUser.getEntryDN() + " (" + attrName + "=" + effectiveAttrValue + ")" );
+                    LOGGER.info( sessionLabel, () -> makeLdapActionLogMessage( "replaced", theUser.getEntryDN(), attrName ) );
                 }
                 catch ( final ChaiOperationException e )
                 {
@@ -300,7 +315,7 @@ public class ActionExecutor
                 try
                 {
                     theUser.addAttribute( attrName, effectiveAttrValue );
-                    LOGGER.info( sessionLabel, () -> "added attribute on user " + theUser.getEntryDN() + " (" + attrName + "=" + effectiveAttrValue + ")" );
+                    LOGGER.info( sessionLabel, () -> makeLdapActionLogMessage( "added", theUser.getEntryDN(), attrName ) );
                 }
                 catch ( final ChaiOperationException e )
                 {

@@ -53,8 +53,10 @@ public class RestClientHelper
     )
             throws PwmOperationalException, PwmUnrecoverableException
     {
+        // request bodies can contain passwords (e.g. external password rule checks), so mask them in debug output
         final PwmHttpClientConfiguration clientConfig = PwmHttpClientConfiguration.builder()
                 .trustManagerType( PwmHttpClientConfiguration.TrustManagerType.promiscuous )
+                .maskBodyDebugOutput( true )
                 .build();
         final PwmHttpClient pwmHttpClient = pwmApplication.getHttpClientService().getPwmHttpClient( clientConfig );
 
@@ -77,7 +79,7 @@ public class RestClientHelper
         final PwmHttpClientResponse httpResponse;
         try
         {
-            LOGGER.debug( () -> "beginning external rest call to: " + url + ", body: " + jsonRequestBody );
+            LOGGER.debug( () -> makeBeginCallLogMessage( url, jsonRequestBody ) );
             httpResponse = pwmHttpClient.makeRequest( pwmHttpClientRequest, SessionLabel.SYSTEM_LABEL  );
             final String responseBody = httpResponse.getBody();
             LOGGER.trace( () -> "external rest call returned: " + httpResponse.getStatusPhrase()  );
@@ -95,5 +97,15 @@ public class RestClientHelper
             LOGGER.error( () -> errorMsg );
             throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg ), e );
         }
+    }
+
+    /**
+     * Debug log message for an outbound rest call.  Only the body length is logged, never the body,
+     * because it may contain a password (for example the external password rule check request).
+     */
+    static String makeBeginCallLogMessage( final String url, final String jsonRequestBody )
+    {
+        final int bodyLength = jsonRequestBody == null ? 0 : jsonRequestBody.length();
+        return "beginning external rest call to: " + url + ", body: [" + bodyLength + " chars] " + PwmConstants.LOG_REMOVED_VALUE_REPLACEMENT;
     }
 }
