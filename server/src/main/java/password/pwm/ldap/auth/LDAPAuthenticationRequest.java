@@ -145,6 +145,15 @@ class LDAPAuthenticationRequest implements AuthenticationRequest
                 {
                     strategy = AuthenticationStrategy.WRITE_THEN_BIND;
                 }
+                else if ( requestedAuthType == AuthenticationType.AUTH_FROM_PUBLIC_MODULE
+                        && !Boolean.parseBoolean( pwmApplication.getConfig().readAppProperty( AppProperty.LDAP_PASSWORD_CHANGE_SELF_ENABLE ) ) )
+                {
+                    // the ldap password is owned by an external system, so a temporary password was not written
+                    // (overwriting it would lock the user out if the session is abandoned); use the proxy instead.
+                    log( PwmLogLevel.DEBUG, () -> "temporary random password not written due to app property "
+                            + AppProperty.LDAP_PASSWORD_CHANGE_SELF_ENABLE.getKey() + "=false, will use proxy connection" );
+                    strategy = AuthenticationStrategy.ADMIN_PROXY;
+                }
             }
         }
 
@@ -479,12 +488,13 @@ class LDAPAuthenticationRequest implements AuthenticationRequest
     {
 
         final boolean configAlwaysUseProxy = pwmApplication.getConfig().readSettingAsBoolean( PwmSetting.AD_USE_PROXY_FOR_FORGOTTEN );
+        final boolean ldapPasswordChangeEnabled = Boolean.parseBoolean( pwmApplication.getConfig().readAppProperty( AppProperty.LDAP_PASSWORD_CHANGE_SELF_ENABLE ) );
 
         final ChaiProvider chaiProvider = pwmApplication.getProxyChaiProvider( userIdentity.getLdapProfileID() );
         final ChaiUser chaiUser = chaiProvider.getEntryFactory().newChaiUser( userIdentity.getUserDN() );
 
         // try setting a random password on the account to authenticate.
-        if ( !configAlwaysUseProxy && requestedAuthType == AuthenticationType.AUTH_FROM_PUBLIC_MODULE )
+        if ( shouldSetTempUserPassword( configAlwaysUseProxy, ldapPasswordChangeEnabled, requestedAuthType ) )
         {
             log( PwmLogLevel.DEBUG, () -> "attempting to set temporary random password" );
 
@@ -525,6 +535,24 @@ class LDAPAuthenticationRequest implements AuthenticationRequest
             return currentPass;
         }
         return null;
+    }
+
+    /**
+     * Determine if a temporary random password should be written to the user's ldap entry so that
+     * an unknown-password (forgotten password) session can bind as the user.  This is never done when the
+     * proxy is configured for forgotten password, or when ldap password writes are disabled via
+     * {@link AppProperty#LDAP_PASSWORD_CHANGE_SELF_ENABLE} (the password attribute is owned by an external
+     * system, and overwriting it can leave the user unable to log in if the session is abandoned).
+     */
+    static boolean shouldSetTempUserPassword(
+            final boolean configAlwaysUseProxy,
+            final boolean ldapPasswordChangeEnabled,
+            final AuthenticationType requestedAuthType
+    )
+    {
+        return !configAlwaysUseProxy
+                && ldapPasswordChangeEnabled
+                && requestedAuthType == AuthenticationType.AUTH_FROM_PUBLIC_MODULE;
     }
 
     private String oraclePreTemporaryPwHandler(
