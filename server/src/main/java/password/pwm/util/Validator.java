@@ -142,8 +142,8 @@ public class Validator
                 final String newString = theString.replaceAll( testString, "" );
                 if ( !newString.equals( theString ) )
                 {
-                    LOGGER.warn( () -> "removing potentially malicious string values from input, converting '"
-                            + input + "' newValue=" + newString + "' pattern='" + testString + "'" );
+                    final String originalString = theString;
+                    LOGGER.warn( () -> makeSanitizeInputLogMessage( originalString, newString, testString ) );
                     theString = newString;
                 }
             }
@@ -168,11 +168,36 @@ public class Validator
             final String output = matcher.replaceAll( "" );
             if ( !input.equals( output ) )
             {
-                LOGGER.warn( () -> "stripped potentially harmful chars from value: input=" + input + " strippedOutput=" + output );
+                LOGGER.warn( () -> makeSanitizeHeaderLogMessage( input, output ) );
             }
             return output;
         }
         return input;
+    }
+
+    /**
+     * Warning message when a disallowed http input pattern changes a value.  The values themselves are never
+     * logged because the input may be a password field; only the lengths and the matching pattern are included.
+     */
+    static String makeSanitizeInputLogMessage( final String input, final String newValue, final String pattern )
+    {
+        return "removing potentially malicious string values from input, length " + lengthOf( input )
+                + " changed to " + lengthOf( newValue ) + ", pattern='" + pattern + "'";
+    }
+
+    /**
+     * Warning message when harmful chars are stripped from a header value.  The values are never logged
+     * because headers such as Authorization contain credentials.
+     */
+    static String makeSanitizeHeaderLogMessage( final String input, final String output )
+    {
+        return "stripped potentially harmful chars from header value, length " + lengthOf( input )
+                + " changed to " + lengthOf( output );
+    }
+
+    private static int lengthOf( final String value )
+    {
+        return value == null ? 0 : value.length();
     }
 }
 
